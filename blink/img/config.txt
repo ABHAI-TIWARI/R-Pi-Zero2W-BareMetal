@@ -1,0 +1,18 @@
+# config.txt — Raspberry Pi Zero 2W bare-metal boot configuration
+# Place this file in the root of the FAT32 SD card.
+
+# Boot in 32-bit (AArch32) mode.
+# The arm-none-eabi toolchain targets AArch32; kernel.img is the 32-bit image.
+arm_64bit=0
+
+# Tell the firmware to load our bare-metal binary.
+kernel=kernel.img
+
+# Disable the on-board audio overlay (simplifies the peripheral map).
+dtparam=audio=off
+
+# Disable camera firmware (not needed for bare metal, saves boot time).
+start_x=0
+
+# Disable the mini UART console so GPIO 14/15 are free for our own UART driver.
+enable_uart=0

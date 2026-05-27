@@ -55,14 +55,22 @@ arm-none-eabi-gcc --version
 
 ```
 .
-├── src/
-│   ├── boot.S          # Startup assembly — CPU init, BSS clear, stack setup
-│   ├── main.c          # Application entry point — ACT LED blink loop
-│   ├── gpio.c          # GPIO driver implementation
-│   └── gpio.h          # GPIO register map and API declarations
-├── linker.ld           # Memory layout (kernel loaded at 0x8000)
-├── config.txt          # RPi firmware boot configuration (goes on SD card)
-├── Makefile
+├── blink/                      # ACT LED blink project
+│   ├── src/
+│   │   ├── boot.S              # Startup assembly — CPU init, BSS clear, stack setup
+│   │   ├── main.c              # Application entry point — ACT LED blink loop
+│   │   ├── gpio.c              # GPIO driver implementation
+│   │   └── gpio.h              # GPIO register map and API declarations
+│   ├── obj/                    # Build artefacts (generated) — .o files, kernel.elf
+│   ├── img/                    # SD card output (generated) — kernel.img, config.txt
+│   ├── linker.ld               # Memory layout (kernel loaded at 0x8000)
+│   ├── config.txt              # RPi firmware boot configuration
+│   └── Makefile
+├── prj_docs/
+│   ├── project_notes.md
+│   └── raw_requirements.md
+├── std_docs/
+├── Makefile                    # Root Makefile — delegates to blink/
 └── README.md
 ```
 
@@ -70,22 +78,32 @@ arm-none-eabi-gcc --version
 
 ## Build
 
+Run from the repo root:
+
 ```bash
 make
 ```
 
-Produces `kernel.img` (a flat binary). You should see:
+Produces a flat binary. You should see:
 
 ```
    text    data     bss     dec     hex filename
-    ...
-  Build complete: kernel.img
-  Copy kernel.img to the SD card root as kernel.img
+    428       0       0     428     1ac blink/obj/kernel.elf
+
+  Build complete: blink/img/kernel.img
+  SD card files ready in blink/img/
 ```
+
+Output directories created automatically:
+
+| Directory | Contents |
+|-----------|----------|
+| `blink/obj/` | `.o` object files, `kernel.elf` |
+| `blink/img/` | `kernel.img`, `config.txt` — copy these to SD card |
 
 **Disassembly** (useful for debugging):
 ```bash
-make dump       # writes kernel.dump
+make dump       # writes blink/obj/kernel.dump
 ```
 
 **Clean**:
@@ -109,9 +127,8 @@ make clean
    | `start.elf` | GPU firmware |
    | `fixup.dat` | GPU memory split configuration |
 
-3. Copy `config.txt` from this repo to the SD card root.
-
-4. Copy `kernel.img` (your compiled binary) to the SD card root.
+3. Copy the contents of `blink/img/` to the SD card root.
+   This folder is auto-populated by `make` and already contains both `config.txt` and `kernel.img`.
 
 The SD card root should contain:
 
