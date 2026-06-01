@@ -18,9 +18,7 @@ static void delay(unsigned int ticks)
 // -----------------------------------------------------------------------
 // main — entry point called from boot.S after CPU + BSS initialisation.
 //
-// Blinks the green ACT LED (GPIO 29) at roughly 1 Hz:
-//   ON  500 000 ticks  → ~0.5 s
-//   OFF 500 000 ticks  → ~0.5 s
+// Blinks the green ACT LED (GPIO 29) at ~1 Hz.
 // -----------------------------------------------------------------------
 void main(void)
 {
@@ -28,9 +26,9 @@ void main(void)
 
     while (1) {
         gpio_set(ACT_LED_GPIO);         // LED ON
-        delay(500000u);
+        delay(5000000u);              // ~1 s at 600 MHz
 
         gpio_clear(ACT_LED_GPIO);       // LED OFF
-        delay(500000u);
+        delay(5000000u);              // ~1 s at 600 MHz
     }
 }
