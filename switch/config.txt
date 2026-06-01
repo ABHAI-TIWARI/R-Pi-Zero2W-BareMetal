@@ -1,0 +1,6 @@
+# config.txt — Raspberry Pi Zero 2W bare-metal boot configuration
+arm_64bit=0
+kernel=kernel.img
+dtparam=audio=off
+start_x=0
+enable_uart=0
