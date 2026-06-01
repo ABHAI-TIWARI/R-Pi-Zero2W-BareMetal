@@ -3,7 +3,7 @@
 A bare-metal **C + ARM Assembly** project for the Raspberry Pi Zero 2W.  
 No OS, no HAL, no standard library — just your code running directly on the hardware.
 
-The first program blinks the green ACT LED (GPIO 29) at 1 Hz.
+Projects so far: ACT LED blink (GPIO 29) and RGB LED colour cycle (GPIO 17/27/22).
 
 ---
 
@@ -55,22 +55,35 @@ arm-none-eabi-gcc --version
 
 ```
 .
-├── blink/                      # ACT LED blink project
+├── blink/                      # Project 1 — On-board ACT LED blink (GPIO 29)
 │   ├── src/
 │   │   ├── boot.S              # Startup assembly — CPU init, BSS clear, stack setup
-│   │   ├── main.c              # Application entry point — ACT LED blink loop
+│   │   ├── main.c              # Blink loop — GPIO 29 on/off at ~1 Hz
 │   │   ├── gpio.c              # GPIO driver implementation
-│   │   └── gpio.h              # GPIO register map and API declarations
+│   │   └── gpio.h              # BCM2710A1 register map and API
 │   ├── obj/                    # Build artefacts (generated) — .o files, kernel.elf
 │   ├── img/                    # SD card output (generated) — kernel.img, config.txt
-│   ├── linker.ld               # Memory layout (kernel loaded at 0x8000)
+│   ├── linker.ld               # Memory layout (kernel at 0x8000)
 │   ├── config.txt              # RPi firmware boot configuration
-│   └── Makefile
+│   ├── Makefile
+│   └── README.md
+├── blinkRGB/                   # Project 2 — External RGB LED colour cycle
+│   ├── src/
+│   │   ├── boot.S              # Same startup code as blink/
+│   │   ├── main.c              # 7-colour cycle: R→G→B→Yellow→Cyan→Magenta→White
+│   │   ├── gpio.c              # GPIO driver implementation
+│   │   └── gpio.h              # Register map + RGB pin assignments (GPIO 17/27/22)
+│   ├── obj/                    # Build artefacts (generated)
+│   ├── img/                    # SD card output (generated)
+│   ├── linker.ld
+│   ├── config.txt
+│   ├── Makefile
+│   └── README.md
 ├── prj_docs/
 │   ├── project_notes.md
 │   └── raw_requirements.md
 ├── std_docs/
-├── Makefile                    # Root Makefile — delegates to blink/
+├── Makefile                    # Root Makefile — builds all projects
 └── README.md
 ```
 
@@ -78,38 +91,34 @@ arm-none-eabi-gcc --version
 
 ## Build
 
-Run from the repo root:
+### Build all projects
 
 ```bash
 make
 ```
 
-Produces a flat binary. You should see:
+### Build a specific project
 
-```
-   text    data     bss     dec     hex filename
-    428       0       0     428     1ac blink/obj/kernel.elf
-
-  Build complete: blink/img/kernel.img
-  SD card files ready in blink/img/
+```bash
+make blink       # builds blink/ only
+make blinkRGB    # builds blinkRGB/ only
 ```
 
-Output directories created automatically:
+### Other targets
+
+```bash
+make dump        # disassembly listing for all projects
+make clean       # remove all obj/ and img/ directories
+```
+
+### Output directories (created automatically)
 
 | Directory | Contents |
 |-----------|----------|
-| `blink/obj/` | `.o` object files, `kernel.elf` |
-| `blink/img/` | `kernel.img`, `config.txt` — copy these to SD card |
-
-**Disassembly** (useful for debugging):
-```bash
-make dump       # writes blink/obj/kernel.dump
-```
-
-**Clean**:
-```bash
-make clean
-```
+| `blink/obj/` | `.o` files, `kernel.elf` |
+| `blink/img/` | `kernel.img`, `config.txt` — copy to SD card |
+| `blinkRGB/obj/` | `.o` files, `kernel.elf` |
+| `blinkRGB/img/` | `kernel.img`, `config.txt` — copy to SD card |
 
 ---
 
@@ -183,9 +192,14 @@ The SD card root should contain:
 
 ---
 
-## Next Steps
+## Projects
 
-Some directions to extend this project:
+| Folder | Description | Key GPIO |
+|--------|-------------|----------|
+| `blink/` | On-board ACT LED blink at ~1 Hz | GPIO 29 (internal) |
+| `blinkRGB/` | External RGB LED 7-colour cycle | GPIO 17, 27, 22 |
+
+## Planned / Next Steps
 
 - **Mini UART driver** — serial debug output over GPIO 14/15 (set `enable_uart=1` in `config.txt`)
 - **ARM timer driver** — accurate delays using the BCM2837 System Timer at `0x3F003000`
