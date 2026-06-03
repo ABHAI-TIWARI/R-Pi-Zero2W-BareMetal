@@ -1,5 +1,8 @@
 # Raspberry Pi Zero 2W — Bare Metal
 
+![Profile Views](https://komarev.com/ghpvc/?username=ABHAI-TIWARI&label=Profile%20Views&color=0e75b6&style=flat)
+![Total Clones](https://img.shields.io/badge/dynamic/json?color=0e75b6&label=Total%20Clones&query=%24.count&url=https%3A%2F%2Fraw.githubusercontent.com%2FABHAI-TIWARI%2FR-Pi-Zero2W-BareMetal%2Fmain%2F.github%2Ftraffic%2Fclones.json)
+
 A bare-metal **C + ARM Assembly** project for the Raspberry Pi Zero 2W.  
 No OS, no HAL, no standard library — just your code running directly on the hardware.
 

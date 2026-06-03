@@ -1,0 +1,72 @@
+name: Update clone stats
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-clones:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update total clones
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const path = ".github/traffic/clones.json";
+
+            let saved = { count: 0, uniques: 0, lastUpdated: null, clones: [] };
+            if (fs.existsSync(path)) {
+              saved = JSON.parse(fs.readFileSync(path, "utf8"));
+            }
+
+            const response = await github.rest.repos.getClones({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per: "day"
+            });
+
+            const existing = new Map(
+              (saved.clones || []).map((entry) => [entry.timestamp, entry])
+            );
+
+            for (const entry of response.data.clones || []) {
+              existing.set(entry.timestamp, entry);
+            }
+
+            const all = Array.from(existing.values()).sort((a, b) =>
+              a.timestamp.localeCompare(b.timestamp)
+            );
+
+            const total = all.reduce(
+              (acc, entry) => {
+                acc.count += entry.count || 0;
+                acc.uniques += entry.uniques || 0;
+                return acc;
+              },
+              { count: 0, uniques: 0 }
+            );
+
+            const output = {
+              count: total.count,
+              uniques: total.uniques,
+              lastUpdated: new Date().toISOString(),
+              clones: all
+            };
+
+            fs.writeFileSync(path, JSON.stringify(output, null, 2) + "\n");
+
+      - name: Commit updated stats
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/traffic/clones.json
+          git diff --cached --quiet || git commit -m "chore: update clone stats"
+          git push
