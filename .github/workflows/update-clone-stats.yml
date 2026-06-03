@@ -11,6 +11,9 @@ permissions:
 jobs:
   update-clones:
     runs-on: ubuntu-latest
+    env:
+      TRAFFIC_PATH: .github/traffic/clones.json
+      TRAFFIC_DIR: .github/traffic
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,11 +23,16 @@ jobs:
         with:
           script: |
             const fs = require("fs");
-            const path = ".github/traffic/clones.json";
+            const path = process.env.TRAFFIC_PATH;
+            const dir = process.env.TRAFFIC_DIR;
 
             let saved = { count: 0, uniques: 0, lastUpdated: null, clones: [] };
             if (fs.existsSync(path)) {
-              saved = JSON.parse(fs.readFileSync(path, "utf8"));
+              try {
+                saved = JSON.parse(fs.readFileSync(path, "utf8"));
+              } catch (error) {
+                throw new Error(`Invalid JSON in ${path}: ${error.message}`);
+              }
             }
 
             const response = await github.rest.repos.getClones({
@@ -61,12 +69,13 @@ jobs:
               clones: all
             };
 
+            fs.mkdirSync(dir, { recursive: true });
             fs.writeFileSync(path, JSON.stringify(output, null, 2) + "\n");
 
       - name: Commit updated stats
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .github/traffic/clones.json
+          git add "$TRAFFIC_PATH"
           git diff --cached --quiet || git commit -m "chore: update clone stats"
           git push
